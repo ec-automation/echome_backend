@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    container_name: echome_backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgres://echome_user:echome_pass@postgres:5432/echome_db
+    networks:
+      - echome-network
+
+  postgres:
+    image: postgres:15
+    container_name: echome-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: echome_user
+      POSTGRES_PASSWORD: echome_pass
+      POSTGRES_DB: echome_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - echome-network
+
+volumes:
+  postgres_data:
+
+networks:
+  echome-network:
+    driver: bridge

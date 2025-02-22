@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Echome Automation</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .chart-container {
+      width: 80%;
+      max-width: 800px;
+      background: #1c1c1c;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dashboard Echome Automation</h1>
+  <div class="chart-container">
+    <canvas id="overviewChart"></canvas>
+  </div>
+
+  <script>
+    async function fetchDashboardData() {
+      try {
+        const response = await fetch('/dashboard', {
+          headers: {
+            'Authorization': 'Bearer {{auth_token}}'
+          }
+        });
+        const data = await response.json();
+
+        const ctx = document.getElementById('overviewChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Usuarios', 'Clientes', 'Órdenes', 'Facturas'],
+            datasets: [{
+              label: 'Resumen General',
+              data: [data.total_users, data.total_clients, data.total_orders, data.total_invoices],
+              backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                labels: {
+                  color: 'white'
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: 'white' }
+              },
+              y: {
+                ticks: { color: 'white' }
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error al obtener datos del dashboard:', error);
+      }
+    }
+
+    fetchDashboardData();
+  </script>
+</body>
+</html>
