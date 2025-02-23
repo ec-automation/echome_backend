@@ -1,37 +1,34 @@
-version: '3.8'
 services:
-  backend:
+  echome-db:
+    container_name: echome-db
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: echome_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/migrations/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+
+  echome-backend:
+    container_name: echome-backend
     build: .
-    container_name: echome_backend
     ports:
       - "3000:3000"
     volumes:
       - .:/app
+      - /app/node_modules
     depends_on:
-      - postgres
+      - echome-db
     environment:
-      - DATABASE_URL=postgres://echome_user:echome_pass@postgres:5432/echome_db
-    networks:
-      - echome-network
-
-  postgres:
-    image: postgres:15
-    container_name: echome-postgres
-    restart: always
-    environment:
-      POSTGRES_USER: echome_user
-      POSTGRES_PASSWORD: echome_pass
-      POSTGRES_DB: echome_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - echome-network
+      - DB_HOST=echome-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=echome_db
+    command: sh -c "until pg_isready -h echome-db -p 5432; do echo waiting for database; sleep 2; done && npm run dev"
 
 volumes:
   postgres_data:
-
-networks:
-  echome-network:
-    driver: bridge

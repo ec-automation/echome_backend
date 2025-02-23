@@ -15,6 +15,8 @@ RUN npm install
 
 # Instalar nodemon globalmente
 RUN npm install -g nodemon
+# Instalar cliente de PostgreSQL para pg_isready
+RUN apt-get update && apt-get install -y postgresql-client
 
 # Copiar el resto del proyecto
 COPY . .
@@ -23,4 +25,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando para iniciar la aplicación
-CMD ["nodemon", "src/index.js"]
+CMD ["npm", "start"]

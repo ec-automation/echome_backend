@@ -43,8 +43,10 @@ app.post('/login', async (req, res) => {
 
     if (!user) return res.status(400).json({ message: 'Usuario no encontrado' });
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) return res.status(403).json({ message: 'Contraseña incorrecta' });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Contraseña incorrecta' });
+    }
 
     const token = jwt.sign({ userId: user.id, role: user.role_id }, process.env.JWT_SECRET, { expiresIn: '24h' });
     res.json({ token });
