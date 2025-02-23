@@ -1,7 +1,7 @@
-const express = require('express');
-const bcrypt = require('bcrypt');
-const pool = require('../database/db');
-const authenticateToken = require('../middleware/auth');
+import express from 'express';
+import bcrypt from 'bcrypt';
+import pool from '../database/db.js';
+import authenticateToken from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -40,4 +40,4 @@ router.post('/change-password', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

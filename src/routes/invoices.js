@@ -1,11 +1,76 @@
-const express = require('express');
-const pool = require('../database/db');
-const authenticateToken = require('../middleware/auth');
+import express from 'express';
+import pool from '../database/db.js';
+import authenticateToken from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Generar una nueva factura a partir de una orden existente
+// Obtener todos los clientes
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM clients');
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener los clientes:', error);
+    res.status(500).json({ message: 'Error al obtener los clientes' });
+  }
+});
+
+// Crear un nuevo cliente
 router.post('/', authenticateToken, async (req, res) => {
+  const { name, email } = req.body;
+
+  if (!name || !email) {
+    return res.status(400).json({ message: 'Nombre y email son obligatorios' });
+  }
+
+  try {
+    await pool.query('INSERT INTO clients (name, email) VALUES ($1, $2)', [name, email]);
+    res.status(201).json({ message: 'Cliente creado exitosamente' });
+  } catch (error) {
+    console.error('Error al crear el cliente:', error);
+    res.status(500).json({ message: 'Error al crear el cliente' });
+  }
+});
+
+// Actualizar cliente
+router.put('/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { name, email } = req.body;
+
+  if (!name || !email) {
+    return res.status(400).json({ message: 'Nombre y email son obligatorios' });
+  }
+
+  try {
+    const result = await pool.query('UPDATE clients SET name = $1, email = $2 WHERE id = $3 RETURNING *', [name, email, id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Cliente no encontrado' });
+    }
+    res.status(200).json({ message: 'Cliente actualizado exitosamente' });
+  } catch (error) {
+    console.error('Error al actualizar el cliente:', error);
+    res.status(500).json({ message: 'Error al actualizar el cliente' });
+  }
+});
+
+// Eliminar cliente
+router.delete('/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query('DELETE FROM clients WHERE id = $1 RETURNING *', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Cliente no encontrado' });
+    }
+    res.status(200).json({ message: 'Cliente eliminado exitosamente' });
+  } catch (error) {
+    console.error('Error al eliminar el cliente:', error);
+    res.status(500).json({ message: 'Error al eliminar el cliente' });
+  }
+});
+
+// Generar una nueva factura a partir de una orden existente
+router.post('/invoices', authenticateToken, async (req, res) => {
   const { order_id, due_date } = req.body;
 
   try {
@@ -28,43 +93,4 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-// Listar todas las facturas
-router.get('/', authenticateToken, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT i.id, i.issue_date, i.due_date, i.status, i.total_amount, o.description AS order_description
-      FROM invoices i
-      JOIN orders o ON i.order_id = o.id
-    `);
-    res.json(result.rows);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al obtener las facturas', error });
-  }
-});
-
-// Actualizar el estado de una factura
-router.put('/:id', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  try {
-    await pool.query('UPDATE invoices SET status = $1 WHERE id = $2', [status, id]);
-    res.json({ message: 'Estado de la factura actualizado' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error al actualizar la factura', error });
-  }
-});
-
-// Eliminar una factura
-router.delete('/:id', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    await pool.query('DELETE FROM invoices WHERE id = $1', [id]);
-    res.json({ message: 'Factura eliminada exitosamente' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error al eliminar la factura', error });
-  }
-});
-
-module.exports = router;
+export default router;

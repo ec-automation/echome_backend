@@ -1,20 +1,24 @@
-require('dotenv').config();
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import pool from './database/db.js';
+import authenticateToken from './middleware/auth.js';
+import userRoutes from './routes/users.js';
+import clientRoutes from './routes/clients.js';
+import orderRoutes from './routes/orders.js';
+import invoiceRoutes from './routes/invoices.js';
+import dashboardRoutes from './routes/dashboard.js';
+import changePasswordRoutes from './routes/auth.js';
 
-const express = require('express');
-const path = require('path');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const app = express(); // ⚠️ Inicialización de 'app'
-const pool = require('./database/db');
-const authenticateToken = require('./middleware/auth');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const app = express();
 const PORT = process.env.PORT || 3000;
-const userRoutes = require('./routes/users');
-const clientRoutes = require('./routes/clients');
-const orderRoutes = require('./routes/orders');
-const invoiceRoutes = require('./routes/invoices');
-const dashboardRoutes = require('./routes/dashboard');
-const changePasswordRoutes = require('./routes/auth');
-
 
 // Middleware para parsear JSON
 app.use(express.json());
@@ -27,14 +31,11 @@ app.use('/clients', clientRoutes);
 app.use('/orders', orderRoutes);
 app.use('/invoices', invoiceRoutes);
 app.use('/dashboard', dashboardRoutes);
-
-// Luego servimos los archivos estáticos (frontend)
-//app.use('/dashboard-view', express.static(path.join(__dirname, 'public', 'dashboard')));
-app.use('/dashboard-visual', express.static(path.join(__dirname, 'public', 'dashboard-visual')));
-app.use('/login', express.static(path.join(__dirname, 'public', 'login')));
 app.use('/auth', changePasswordRoutes);
 
-
+// Servir archivos estáticos del frontend
+app.use('/dashboard-visual', express.static(path.join(__dirname, 'public', 'dashboard-visual')));
+app.use('/login', express.static(path.join(__dirname, 'public', 'login')));
 
 // Ruta de login
 app.post('/login', async (req, res) => {
@@ -57,7 +58,6 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Error en el servidor' });
   }
 });
-
 
 app.use('/dashboard-visual', express.static(path.join(__dirname, 'dashboard-visual'), {
   setHeaders: (res, filePath) => {

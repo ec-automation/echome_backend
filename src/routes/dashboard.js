@@ -1,32 +1,72 @@
-const express = require('express');
-const pool = require('../database/db');
-const authenticateToken = require('../middleware/auth');
+import express from 'express';
+import pool from '../database/db.js';
+import authenticateToken from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Obtener todos los clientes
 router.get('/', authenticateToken, async (req, res) => {
-  console.log(req.user);
-    try {
-      const [users, clients, orders, invoices] = await Promise.all([
-        pool.query('SELECT COUNT(*) FROM users'),
-        pool.query('SELECT COUNT(*) FROM clients'),
-        pool.query('SELECT COUNT(*) FROM orders'),
-        pool.query('SELECT COUNT(*) AS total_invoices, COALESCE(SUM(total_amount), 0) AS total_amount FROM invoices')
-      ]);
-  
-      res.setHeader('Content-Type', 'application/json'); // Forzar respuesta JSON
-      res.status(200).json({
-        total_users: parseInt(users.rows[0].count),
-        total_clients: parseInt(clients.rows[0].count),
-        total_orders: parseInt(orders.rows[0].count),
-        total_invoices: parseInt(invoices.rows[0].total_invoices),
-        total_billed: parseFloat(invoices.rows[0].total_amount)
-      });
-    } catch (error) {
-      res.status(500).json({ message: 'Error al obtener los datos del dashboard', error });
-    }
-  });
-  
-  
+  try {
+    const result = await pool.query('SELECT * FROM clients');
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener los clientes:', error);
+    res.status(500).json({ message: 'Error al obtener los clientes' });
+  }
+});
 
-module.exports = router;
+// Crear un nuevo cliente
+router.post('/', authenticateToken, async (req, res) => {
+  const { name, email } = req.body;
+
+  if (!name || !email) {
+    return res.status(400).json({ message: 'Nombre y email son obligatorios' });
+  }
+
+  try {
+    await pool.query('INSERT INTO clients (name, email) VALUES ($1, $2)', [name, email]);
+    res.status(201).json({ message: 'Cliente creado exitosamente' });
+  } catch (error) {
+    console.error('Error al crear el cliente:', error);
+    res.status(500).json({ message: 'Error al crear el cliente' });
+  }
+});
+
+// Actualizar cliente
+router.put('/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { name, email } = req.body;
+
+  if (!name || !email) {
+    return res.status(400).json({ message: 'Nombre y email son obligatorios' });
+  }
+
+  try {
+    const result = await pool.query('UPDATE clients SET name = $1, email = $2 WHERE id = $3 RETURNING *', [name, email, id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Cliente no encontrado' });
+    }
+    res.status(200).json({ message: 'Cliente actualizado exitosamente' });
+  } catch (error) {
+    console.error('Error al actualizar el cliente:', error);
+    res.status(500).json({ message: 'Error al actualizar el cliente' });
+  }
+});
+
+// Eliminar cliente
+router.delete('/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query('DELETE FROM clients WHERE id = $1 RETURNING *', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Cliente no encontrado' });
+    }
+    res.status(200).json({ message: 'Cliente eliminado exitosamente' });
+  } catch (error) {
+    console.error('Error al eliminar el cliente:', error);
+    res.status(500).json({ message: 'Error al eliminar el cliente' });
+  }
+});
+
+export default router;
