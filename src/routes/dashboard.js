@@ -5,6 +5,7 @@ const authenticateToken = require('../middleware/auth');
 const router = express.Router();
 
 router.get('/', authenticateToken, async (req, res) => {
+  console.log(req.user);
     try {
       const [users, clients, orders, invoices] = await Promise.all([
         pool.query('SELECT COUNT(*) FROM users'),

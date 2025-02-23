@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Echome Automation</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .logo {
+      margin-bottom: 30px;
+    }
+
+    .logo img {
+      max-width: 200px;
+      opacity: 0.8;
+    }
+
+    .login-card {
+      background-color: #333;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    .login-card button {
+      background-color: #4BC0C0;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .login-card button:hover {
+      background-color: #36A2EB;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <img src="/logo_png.png" alt="Logo Echome">
+  </div>
+
+  <div class="login-card">
+    <h2>Iniciar Sesión</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Nombre de usuario" required />
+      <input type="password" id="password" placeholder="Contraseña" required />
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <script>
+    // Verificar si el usuario ya tiene un token válido
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        if (tokenPayload.exp > currentTime) {
+          window.location.href = '/dashboard-visual/index.html';
+        }
+      }
+    });
+
+    // Manejar el envío del formulario
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Guardar el token y redirigir al dashboard
+          localStorage.setItem('auth_token', data.token);
+          window.location.href = '/dashboard-visual/index.html';
+        } else {
+          alert('Login fallido: ' + data.message);
+        }
+      } catch (error) {
+        console.error('Error en el login:', error);
+      }
+    });
+  </script>
+</body>
+</html>

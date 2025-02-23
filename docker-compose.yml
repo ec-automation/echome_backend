@@ -5,6 +5,8 @@ services:
     container_name: echome_backend
     ports:
       - "3000:3000"
+    volumes:
+      - .:/app
     depends_on:
       - postgres
     environment:
