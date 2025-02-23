@@ -3,92 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard de Clientes</title>
+  <title>Dashboard - Echome Automation</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      background-color: #000;
-      color: white;
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-
-    h1 {
-      text-align: center;
-    }
-
-    #client-count {
-      font-size: 24px;
-      text-align: center;
-      margin: 20px 0;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      padding: 10px;
-      border: 1px solid #333;
-      text-align: center;
-    }
-
-    th {
-      background-color: #444;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Dashboard de Clientes</h1>
-  <div id="client-count">Clientes Totales: 0</div>
+  <div class="sidebar" id="sidebar">
+    <button onclick="toggleSidebar()">☰</button>
+    <button onclick="loadSection('dashboard')">Dashboard</button>
+    <button onclick="loadSection('clients')">Clientes</button>
+    <button onclick="loadSection('users')">Usuarios</button>
+    <button onclick="loadSection('products')">Productos</button>
+    <button onclick="loadSection('orders')">Órdenes</button>
+    <button onclick="loadSection('invoices')">Facturas</button>
+  </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Email</th>
-      </tr>
-    </thead>
-    <tbody id="client-list">
-      <!-- Aquí se cargarán los datos de los clientes -->
-    </tbody>
-  </table>
+  <div class="main-content">
+    <div class="navbar">
+      <h2>Echome Automation</h2>
+      <div>
+        <span id="username"></span>
+        <button class="logout-btn" id="logoutBtn">Cerrar Sesión</button>
+      </div>
+    </div>
+    <div id="content" class="content-section">
+      <h1>Bienvenido al Dashboard</h1>
+    </div>
+  </div>
 
-  <script>
-    async function fetchClients() {
-      try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch('http://localhost:3000/clients', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        const clients = await response.json();
-
-        // Mostrar el número total de clientes
-        document.getElementById('client-count').innerText = `Clientes Totales: ${clients.length}`;
-
-        // Generar la lista de clientes en la tabla
-        const clientList = document.getElementById('client-list');
-        clients.forEach(client => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${client.id}</td>
-            <td>${client.name}</td>
-            <td>${client.email}</td>
-          `;
-          clientList.appendChild(row);
-        });
-      } catch (error) {
-        console.error('Error al obtener clientes:', error);
-      }
-    }
-
-    // Cargar los clientes al cargar la página
-    fetchClients();
-  </script>
+  <script src="sidebar.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="clients.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>

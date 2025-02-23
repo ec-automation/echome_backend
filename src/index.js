@@ -58,6 +58,15 @@ app.post('/login', async (req, res) => {
   }
 });
 
+
+app.use('/dashboard-visual', express.static(path.join(__dirname, 'dashboard-visual'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+}));
+
 // Ruta protegida de prueba
 app.get('/protected', authenticateToken, (req, res) => {
   res.json({ message: 'Acceso permitido', user: req.user });
