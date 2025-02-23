@@ -1,23 +1,10 @@
-function setupClientCrud() {
-  document.getElementById('clientForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('clientName').value;
-    const email = document.getElementById('clientEmail').value;
-    await fetch('/clients', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email })
-    });
-    loadClients();
-  });
-  loadClients();
-}
-
-async function loadClients() {
+export async function loadClients() {
   const token = localStorage.getItem('auth_token');
   if (!token) {
     console.error('No se encontró el token de autenticación');
-    window.location.href = '/login/login.html'; // Redirigir si no hay token
+    if (typeof window !== 'undefined' && window.location) {
+      window.location.href = '/login/login.html';
+    }
     return;
   }
 
@@ -54,8 +41,7 @@ async function loadClients() {
   }
 }
 
-
-async function updateClient(id) {
+export async function updateClient(id) {
   const name = prompt('Nuevo nombre:');
   const email = prompt('Nuevo email:');
   if (name && email) {
@@ -68,7 +54,7 @@ async function updateClient(id) {
   }
 }
 
-async function deleteClient(id) {
+export async function deleteClient(id) { // 🔥 Asegurar que está exportado
   if (confirm('¿Estás seguro de eliminar este cliente?')) {
     await fetch(`/clients/${id}`, { method: 'DELETE' });
     loadClients();
