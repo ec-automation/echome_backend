@@ -61,10 +61,11 @@ export async function deleteClient(id) { // 🔥 Asegurar que está exportado
   }
 }
 
+
+
 export function loadClientsUI() {
-  const clientsContainer = document.getElementById('clientsContainer');
-  clientsContainer.innerHTML = `
-    <h1>Gestión de Clientes</h1>
+  const content = document.getElementById('content');
+  content.innerHTML = `<div id="clientsContainer"> <h1>Gestión de Clientes</h1>
     <form id="clientForm">
       <input type="text" id="clientName" placeholder="Nombre del Cliente" required />
       <input type="email" id="clientEmail" placeholder="Email" required />
@@ -75,9 +76,6 @@ export function loadClientsUI() {
         <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Acciones</th></tr>
       </thead>
       <tbody id="clientList"></tbody>
-    </table>
-  `;
-  
-  setupClientCrud(); // 🔥 Llama a la función que maneja el CRUD de clientes
+    </table></div>`; // Se asegura de que exista antes de llamar a loadClients()
+  loadClients();
 }
-

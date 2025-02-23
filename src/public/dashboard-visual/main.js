@@ -25,44 +25,49 @@ function setupClientCrud() {
 }
 
 async function loadClients() {
-  const token = localStorage.getItem('auth_token');
-  const response = await fetch('/clients', {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  });
+  const clientContainer = document.getElementById('clientsContainer');
   
-  const clients = await response.json();
-  const clientList = document.getElementById('clientList');
-  clientList.innerHTML = '';
-
-  if (clients.length === 0) {
-    clientList.innerHTML = `<tr><td colspan="4" style="text-align: center;">No existen clientes</td></tr>`;
-  } else {
-    clients.forEach(client => {
-      clientList.innerHTML += `<tr>
-        <td>${client.id}</td>
-        <td><input type='text' id='name-${client.id}' value='${client.name}'/></td>
-        <td><input type='email' id='email-${client.id}' value='${client.email}'/></td>
-        <td>
-          <button onclick="updateClient(${client.id})">Actualizar</button>
-          <button onclick="deleteClient(${client.id})">Eliminar</button>
-        </td>
-      </tr>`;
-    });
+  if (!clientContainer) {
+    console.error("❌ Error: clientContainer no encontrado en el DOM.");
+    return;
   }
 
-  // Agregar botón para crear cliente nuevo
-  const clientContainer = document.getElementById('clientContainer');
-  if (!document.getElementById('createClientBtn')) {
-    const createClientBtn = document.createElement('button');
-    createClientBtn.id = 'createClientBtn';
-    createClientBtn.innerText = 'Crear Cliente Nuevo';
-    createClientBtn.onclick = () => document.getElementById('clientForm').scrollIntoView();
-    clientContainer.appendChild(createClientBtn);
+  clientContainer.innerHTML = "<p>Cargando clientes...</p>";
+  
+  try {
+    const response = await fetch('/clients');
+    const clients = await response.json();
+
+    if (clients.length === 0) {
+      clientContainer.innerHTML = "<p>No hay clientes registrados.</p>";
+    } else {
+      clientContainer.innerHTML = `
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Acciones</th></tr>
+          </thead>
+          <tbody>
+            ${clients.map(client => `
+              <tr>
+                <td>${client.id}</td>
+                <td>${client.name}</td>
+                <td>${client.email}</td>
+                <td>
+                  <button onclick="updateClient(${client.id})">Editar</button>
+                  <button onclick="deleteClient(${client.id})">Eliminar</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+  } catch (error) {
+    console.error("❌ Error al cargar clientes:", error);
+    clientContainer.innerHTML = "<p>Error al cargar los clientes.</p>";
   }
 }
+
 
 async function updateClient(id) {
   const name = document.getElementById(`name-${id}`).value;
