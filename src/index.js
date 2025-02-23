@@ -34,8 +34,8 @@ app.use('/dashboard', dashboardRoutes);
 app.use('/auth', changePasswordRoutes);
 
 // Servir archivos estáticos del frontend
-app.use('/dashboard-visual', express.static(path.join(__dirname, 'public', 'dashboard-visual')));
-app.use('/login', express.static(path.join(__dirname, 'public', 'login')));
+app.use('/dashboard-visual', express.static('public/dashboard-visual'));
+app.use('/login', express.static('public/login'));
 
 // Ruta de login
 app.post('/login', async (req, res) => {
