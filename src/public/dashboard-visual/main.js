@@ -1,119 +1,107 @@
-function setupClientCrud() {
-  document.getElementById('clientForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('clientName').value;
-    const email = document.getElementById('clientEmail').value;
-    const token = localStorage.getItem('auth_token');
-    
-    const response = await fetch('/clients', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name, email })
-    });
-    
-    if (response.ok) {
-      document.getElementById('clientForm').reset();
-      loadClients();
-    } else {
-      console.error('Error al crear cliente');
-    }
-  });
-  loadClients();
-}
+import express from 'express';
+import bcrypt from 'bcrypt';
+import pool from '../database/db.js';
+import authenticateToken from '../middleware/auth.js';
 
-async function loadClients() {
-  const clientContainer = document.getElementById('clientsContainer');
-  
-  if (!clientContainer) {
-    console.error("❌ Error: clientContainer no encontrado en el DOM.");
-    return;
-  }
+const router = express.Router();
 
-  clientContainer.innerHTML = "<p>Cargando clientes...</p>";
-  
+// Registrar un nuevo usuario (solo Admin)
+router.post('/register', authenticateToken, async (req, res) => {
+  if (req.user.role !== 1) return res.status(403).json({ message: 'Acceso denegado' });
+
+  const { username, password, role_id } = req.body;
+
   try {
-    const response = await fetch('/clients');
-    const clients = await response.json();
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await pool.query(
+      'INSERT INTO users (username, password, role_id) VALUES ($1, $2, $3)',
+      [username, hashedPassword, role_id]
+    );
 
-    if (clients.length === 0) {
-      clientContainer.innerHTML = "<p>No hay clientes registrados.</p>";
-    } else {
-      clientContainer.innerHTML = `
-        <table>
-          <thead>
-            <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Acciones</th></tr>
-          </thead>
-          <tbody>
-            ${clients.map(client => `
-              <tr>
-                <td>${client.id}</td>
-                <td>${client.name}</td>
-                <td>${client.email}</td>
-                <td>
-                  <button onclick="updateClient(${client.id})">Editar</button>
-                  <button onclick="deleteClient(${client.id})">Eliminar</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    }
+    res.status(201).json({ message: 'Usuario creado exitosamente' });
   } catch (error) {
-    console.error("❌ Error al cargar clientes:", error);
-    clientContainer.innerHTML = "<p>Error al cargar los clientes.</p>";
+    res.status(500).json({ message: 'Error al crear el usuario', error });
   }
-}
+});
 
-
-async function updateClient(id) {
-  const name = document.getElementById(`name-${id}`).value;
-  const email = document.getElementById(`email-${id}`).value;
-  const token = localStorage.getItem('auth_token');
-  
-  const response = await fetch(`/clients/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ name, email })
-  });
-  
-  if (response.ok) {
-    loadClients();
-  } else {
-    console.error('Error al actualizar cliente');
+// Listar todos los usuarios (requiere autenticación)
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, username, role_id FROM users');
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener los usuarios' });
   }
-}
+});
 
-async function deleteClient(id) {
-  if (confirm('¿Estás seguro de eliminar este cliente?')) {
-    const token = localStorage.getItem('auth_token');
-    const response = await fetch(`/clients/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    if (response.ok) {
-      loadClients();
+// Eliminar un cliente por ID (manejo de error de clave foránea)
+router.delete('/:id', authenticateToken, async (req, res) => {
+  if (req.user.role !== 1) {
+    return res.status(403).json({ message: 'Acceso denegado' });
+  }
+
+  const { id } = req.params;
+
+  try {
+    await pool.query('DELETE FROM clients WHERE id = $1', [id]);
+    res.json({ message: 'Cliente eliminado exitosamente' });
+  } catch (error) {
+    if (error.code === '23503') {
+      res.status(400).json({ message: 'No se puede eliminar el cliente porque está referenciado en otra tabla.', error });
     } else {
-      console.error('Error al eliminar cliente');
+      res.status(500).json({ message: 'Error al eliminar el cliente', error });
     }
   }
-}
+});
 
-// Restaurar función de cierre de sesión
-function setupLogout() {
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.removeItem('auth_token');
-    window.location.href = '/login/login.html';
-  });
-}
+// Actualizar un usuario por ID (solo Admin)
+router.put('/:id', authenticateToken, async (req, res) => {
+  if (req.user.role !== 1) {
+    return res.status(403).json({ message: 'Acceso denegado' });
+  }
 
-document.addEventListener('DOMContentLoaded', setupLogout);
+  const { id } = req.params;
+  const { username, password, role_id } = req.body;
+
+  try {
+    let updateFields = [];
+    let updateValues = [];
+    let index = 1;
+
+    if (username) {
+      updateFields.push(`username = $${index}`);
+      updateValues.push(username);
+      index++;
+    }
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateFields.push(`password = $${index}`);
+      updateValues.push(hashedPassword);
+      index++;
+    }
+
+    if (role_id) {
+      updateFields.push(`role_id = $${index}`);
+      updateValues.push(role_id);
+      index++;
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: 'No se proporcionaron datos para actualizar' });
+    }
+
+    updateValues.push(id);
+
+    await pool.query(
+      `UPDATE users SET ${updateFields.join(', ')} WHERE id = $${index}`,
+      updateValues
+    );
+
+    res.json({ message: 'Usuario actualizado exitosamente' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al actualizar el usuario', error });
+  }
+});
+
+export default router;
