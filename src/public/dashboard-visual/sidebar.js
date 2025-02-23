@@ -1,3 +1,9 @@
+import { loadClientsUI } from './clients.js';
+// Expón las funciones globalmente para que sean accesibles desde el HTML
+window.loadSection = loadSection;
+window.toggleSidebar = toggleSidebar;
+
+
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('collapsed');
 }
