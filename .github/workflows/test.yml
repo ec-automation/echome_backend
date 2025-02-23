@@ -1,0 +1,34 @@
+name: Ejecutar Pruebas y Cobertura
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar el código
+      uses: actions/checkout@v3
+
+    - name: Configurar Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Instalar dependencias
+      run: npm install
+
+    - name: Ejecutar pruebas con cobertura
+      run: npm test -- --coverage --coverageReporters=html
+
+    - name: Subir reporte de pruebas
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-report
+        path: test-report.html
+
+    - name: Subir reporte de cobertura
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/lcov-report/
