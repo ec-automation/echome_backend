@@ -3,149 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - Echome Automation</title>
+  <title>Dashboard de Clientes</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      margin: 0;
-      padding: 0;
       background-color: #000;
       color: white;
       font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .navbar {
-      width: 100%;
-      background-color: #1c1c1c;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    }
-
-    .navbar h2 {
-      margin: 0;
-      color: #fff;
-    }
-
-    .navbar .user-info {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .logout-btn {
-      background-color: #ff4b5c;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .chart-container {
-      width: 80%;
-      max-width: 800px;
-      background: #1c1c1c;
       padding: 20px;
-      margin-top: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     }
 
     h1 {
       text-align: center;
-      font-size: 2rem;
+    }
+
+    #client-count {
+      font-size: 24px;
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #333;
+      text-align: center;
+    }
+
+    th {
+      background-color: #444;
     }
   </style>
 </head>
 <body>
-  <div class="navbar">
-    <h2>Echome Automation Dashboard</h2>
-    <div class="user-info">
-      <span id="username"></span>
-      <button class="logout-btn" id="logoutBtn">Cerrar Sesión</button>
-    </div>
-  </div>
+  <h1>Dashboard de Clientes</h1>
+  <div id="client-count">Clientes Totales: 0</div>
 
-  <h1>Resumen General</h1>
-  <div class="chart-container">
-    <canvas id="overviewChart"></canvas>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody id="client-list">
+      <!-- Aquí se cargarán los datos de los clientes -->
+    </tbody>
+  </table>
 
   <script>
-    // Verificar el token y mostrar el nombre del usuario
-    document.addEventListener('DOMContentLoaded', () => {
-      const token = localStorage.getItem('auth_token');
-
-      if (!token) {
-        window.location.href = '/login/login.html';
-      } else {
-        const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-        const currentTime = Math.floor(Date.now() / 1000);
-
-        if (tokenPayload.exp < currentTime) {
-          localStorage.removeItem('auth_token');
-          window.location.href = '/login/login.html';
-        } else {
-          // Mostrar el nombre de usuario en el navbar
-          document.getElementById('username').innerText = `Usuario: ${tokenPayload.username || 'Admin'}`;
-        }
-      }
-    });
-
-    // Función de logout
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login/login.html';
-    });
-
-    // Obtener datos del dashboard y renderizar el gráfico
-    async function fetchDashboardData() {
+    async function fetchClients() {
       try {
         const token = localStorage.getItem('auth_token');
-        const response = await fetch('/dashboard', {
+        const response = await fetch('http://localhost:3000/clients', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
+        const clients = await response.json();
 
-        const data = await response.json();
+        // Mostrar el número total de clientes
+        document.getElementById('client-count').innerText = `Clientes Totales: ${clients.length}`;
 
-        const ctx = document.getElementById('overviewChart').getContext('2d');
-        new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ['Usuarios', 'Clientes', 'Órdenes', 'Facturas'],
-            datasets: [{
-              label: 'Resumen General',
-              data: [data.total_users, data.total_clients, data.total_orders, data.total_invoices],
-              backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                labels: { color: 'white' }
-              }
-            },
-            scales: {
-              x: { ticks: { color: 'white' } },
-              y: { ticks: { color: 'white' } }
-            }
-          }
+        // Generar la lista de clientes en la tabla
+        const clientList = document.getElementById('client-list');
+        clients.forEach(client => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${client.id}</td>
+            <td>${client.name}</td>
+            <td>${client.email}</td>
+          `;
+          clientList.appendChild(row);
         });
       } catch (error) {
-        console.error('Error al obtener datos del dashboard:', error);
+        console.error('Error al obtener clientes:', error);
       }
     }
 
-    fetchDashboardData();
+    // Cargar los clientes al cargar la página
+    fetchClients();
   </script>
 </body>
 </html>

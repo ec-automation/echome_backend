@@ -13,6 +13,7 @@ const clientRoutes = require('./routes/clients');
 const orderRoutes = require('./routes/orders');
 const invoiceRoutes = require('./routes/invoices');
 const dashboardRoutes = require('./routes/dashboard');
+const changePasswordRoutes = require('./routes/auth');
 
 
 // Middleware para parsear JSON
@@ -31,6 +32,8 @@ app.use('/dashboard', dashboardRoutes);
 //app.use('/dashboard-view', express.static(path.join(__dirname, 'public', 'dashboard')));
 app.use('/dashboard-visual', express.static(path.join(__dirname, 'public', 'dashboard-visual')));
 app.use('/login', express.static(path.join(__dirname, 'public', 'login')));
+app.use('/auth', changePasswordRoutes);
+
 
 
 // Ruta de login
