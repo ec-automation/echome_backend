@@ -14,6 +14,7 @@ import orderRoutes from './routes/orders.js';
 import invoiceRoutes from './routes/invoices.js';
 import dashboardRoutes from './routes/dashboard.js';
 import changePasswordRoutes from './routes/auth.js';
+import { Server } from 'socket.io'; // Importar socket.io
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -72,7 +73,35 @@ app.get('/protected', authenticateToken, (req, res) => {
   res.json({ message: 'Acceso permitido', user: req.user });
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
+// Crear el servidor HTTP
+const server = app.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
+
+// Configurar WebSockets con socket.io y habilitar CORS
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3001", // Cambia a tu origen si es necesario
+    methods: ["GET", "POST"]
+  }
+});
+
+console.log('Servidor WebSocket iniciado correctamente');
+
+// Conexión de clientes WebSocket
+io.on('connection', (socket) => {
+  console.log('Un cliente se ha conectado');
+
+  // Escuchar eventos desde el cliente
+  socket.on('disconnect', () => {
+    console.log('Un cliente se ha desconectado');
+  });
+
+  // Ejemplo de enviar un mensaje al cliente
+  socket.emit('message', 'Conexión WebSocket exitosa');
+});
+
+setTimeout(() => {
+  io.emit('message', 'backend_en_linea');
+  console.log('backend_en_linea emitido');
+}, 10000);

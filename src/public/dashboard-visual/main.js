@@ -2,8 +2,29 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import pool from '../database/db.js';
 import authenticateToken from '../middleware/auth.js';
+import { Server } from 'socket.io';
+import http from 'http';
+import cors from 'cors';
 
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
+
+app.use(cors());
 const router = express.Router();
+
+// WebSockets: Conexión con clientes
+io.on('connection', (socket) => {
+  console.log('Cliente conectado');
+
+  socket.on('backend_en_linea', (message) => {
+    console.log(message);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Cliente desconectado');
+  });
+});
 
 // Registrar un nuevo usuario (solo Admin)
 router.post('/register', authenticateToken, async (req, res) => {
@@ -34,7 +55,7 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// Eliminar un cliente por ID (manejo de error de clave foránea)
+// Eliminar un cliente por ID (manejo de error de clave foránea con WebSockets)
 router.delete('/:id', authenticateToken, async (req, res) => {
   if (req.user.role !== 1) {
     return res.status(403).json({ message: 'Acceso denegado' });
@@ -44,6 +65,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
   try {
     await pool.query('DELETE FROM clients WHERE id = $1', [id]);
+    io.emit('clientDeleted', { id }); // Emitir evento de eliminación de cliente
     res.json({ message: 'Cliente eliminado exitosamente' });
   } catch (error) {
     if (error.code === '23503') {
@@ -102,6 +124,11 @@ router.put('/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error al actualizar el usuario', error });
   }
+});
+
+// Iniciar servidor con WebSockets
+server.listen(3000, () => {
+  console.log('Servidor corriendo en el puerto 3000');
 });
 
 export default router;

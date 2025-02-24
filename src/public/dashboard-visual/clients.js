@@ -61,8 +61,6 @@ export async function deleteClient(id) { // 🔥 Asegurar que está exportado
   }
 }
 
-
-
 export function loadClientsUI() {
   const content = document.getElementById('content');
   content.innerHTML = `<div id="clientsContainer"> <h1>Gestión de Clientes</h1>
