@@ -19,7 +19,7 @@ import { Server } from 'socket.io'; // Importar socket.io
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Middleware para parsear JSON
 app.use(express.json());
@@ -90,11 +90,11 @@ console.log('Servidor WebSocket iniciado correctamente');
 
 // Conexión de clientes WebSocket
 io.on('connection', (socket) => {
-  console.log('Un cliente se ha conectado');
+  console.log('Un cliente se ha conectado', socket.id);
 
   // Escuchar eventos desde el cliente
   socket.on('disconnect', () => {
-    console.log('Un cliente se ha desconectado');
+    console.log('Un cliente se ha desconectado', socket.id);
   });
 
   socket.on('message', (message) => {
