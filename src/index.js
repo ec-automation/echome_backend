@@ -81,7 +81,7 @@ const server = app.listen(PORT, () => {
 // Configurar WebSockets con socket.io y habilitar CORS
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3001", // Cambia a tu origen si es necesario
+    origin: true, // Permite conexiones desde cualquier origen
     methods: ["GET", "POST"]
   }
 });
@@ -95,6 +95,11 @@ io.on('connection', (socket) => {
   // Escuchar eventos desde el cliente
   socket.on('disconnect', () => {
     console.log('Un cliente se ha desconectado');
+  });
+
+  socket.on('message', (message) => {
+    console.log('Mensaje recibido:', message);
+    io.emit('message', message);
   });
 
   // Ejemplo de enviar un mensaje al cliente
