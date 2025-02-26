@@ -52,6 +52,34 @@
       height: auto;
     }
 
+    .message-card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      width: 80%;
+      max-width: 600px;
+      margin: 20px 0;
+      overflow-y: auto;
+      max-height: 300px;
+    }
+
+    .message {
+      background-color: #f1f1f1;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+
+    .message.incoming {
+      background-color: #e0f7fa;
+    }
+
+    .message.outgoing {
+      background-color: #e8f5e9;
+    }
+
     @media (max-width: 600px) {
       h1 {
         font-size: 6vw;
@@ -66,13 +94,42 @@
       }
     }
   </style>
-<script src="/socket.io/socket.io.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const socket = io();
+      const messageContainer = document.getElementById('message-container');
+
+      socket.on('message', (message) => {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', 'incoming');
+        messageElement.textContent = `Incoming: ${message}`;
+        messageContainer.appendChild(messageElement);
+      });
+
+      function sendMessage() {
+        const message = 'Hello from client'; // Example message
+        socket.emit('message', message);
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', 'outgoing');
+        messageElement.textContent = `Outgoing: ${message}`;
+        messageContainer.appendChild(messageElement);
+      }
+
+      // Send a test message on load
+      sendMessage();
+    });
+  </script>
 </head>
 <body>
   <div class="content">
     <img src="/logo_png.png" alt="Logo Echome" style="opacity: 20%;">
     <p>Backend Server Running v1.0.0</p>
     <p>Hora actual desde la base de datos: {{currentTime}}</p>
+
+    <div class="message-card" id="message-container">
+      <!-- Messages will appear here -->
+    </div>
   </div>
 
   <div class="footer">
