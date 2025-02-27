@@ -1,46 +1,41 @@
 function renderDashboardChart() {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      console.error('No se encontró el token de autenticación');
-      return;
-    }
-  
-    fetch('/dashboard', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+  const socket = io(); // Initialize Socket.IO
+  const ctx = document.getElementById('overviewChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Usuarios', 'Clientes', 'Compañías', 'Productos', 'Órdenes', 'Facturas'],
+      datasets: [{
+        label: 'Resumen General',
+        data: [0, 0, 0, 0, 0, 0], // Initial data
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: 'white' } }
+      },
+      scales: {
+        x: { ticks: { color: 'white' } },
+        y: { ticks: { color: 'white' } }
       }
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        const ctx = document.getElementById('overviewChart').getContext('2d');
-        new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ['Usuarios', 'Clientes', 'Órdenes', 'Facturas'],
-            datasets: [{
-              label: 'Resumen General',
-              data: [data.total_users, data.total_clients, data.total_orders, data.total_invoices],
-              backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { labels: { color: 'white' } }
-            },
-            scales: {
-              x: { ticks: { color: 'white' } },
-              y: { ticks: { color: 'white' } }
-            }
-          }
-        });
-      })
-      .catch(error => console.error('Error al obtener datos del dashboard:', error));
-  }
-  
+    }
+  });
+
+  // Listen for real-time updates
+  socket.on('db_update', (data) => {
+    chart.data.datasets[0].data = [
+      data.users,
+      data.clients,
+      data.companies,
+      data.products,
+      data.orders,
+      data.invoices
+    ];
+    chart.update();
+  });
+
+  // Request initial data
+  socket.emit('request_db_update');
+}

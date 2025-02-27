@@ -140,6 +140,30 @@ io.on('connection', (socket) => {
     socket.emit("cart_update", { type: "cart_update", totalItems });
   });
 
+    // Listen for the 'request_db_update' event
+    socket.on('request_db_update', async () => {
+      try {
+        const usersCount = await pool.query('SELECT COUNT(*) FROM users');
+        const companiesCount = await pool.query('SELECT COUNT(*) FROM companies');
+        const productsCount = await pool.query('SELECT COUNT(*) FROM products');
+        const ordersCount = await pool.query('SELECT COUNT(*) FROM orders');
+        const invoicesCount = await pool.query('SELECT COUNT(*) FROM invoices');
+        const clientsCount = await pool.query('SELECT COUNT(*) FROM clients');
+  
+        // Emit the data back to the client
+        socket.emit('db_update', {
+          users: usersCount.rows[0].count,
+          companies: companiesCount.rows[0].count,
+          products: productsCount.rows[0].count,
+          orders: ordersCount.rows[0].count,
+          invoices: invoicesCount.rows[0].count,
+          clients: clientsCount.rows[0].count,
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
+    });
+
   // Ejemplo de enviar un mensaje al cliente
   socket.emit('message', 'Conexión WebSocket exitosa');
 });
