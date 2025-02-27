@@ -4,68 +4,27 @@ import authenticateToken from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Obtener todos los clientes
-router.get('/', authenticateToken, async (req, res) => {
+// Get data for dashboard chart
+router.get('/chart-data', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM clients');
-    res.status(200).json(result.rows);
+    const usersCount = await pool.query('SELECT COUNT(*) FROM users');
+    const companiesCount = await pool.query('SELECT COUNT(*) FROM companies');
+    const productsCount = await pool.query('SELECT COUNT(*) FROM products');
+    const ordersCount = await pool.query('SELECT COUNT(*) FROM orders');
+    const invoicesCount = await pool.query('SELECT COUNT(*) FROM invoices');
+    const clientsCount = await pool.query('SELECT COUNT(*) FROM clients');
+
+    res.status(200).json({
+      users: usersCount.rows[0].count,
+      companies: companiesCount.rows[0].count,
+      products: productsCount.rows[0].count,
+      orders: ordersCount.rows[0].count,
+      invoices: invoicesCount.rows[0].count,
+      clients: clientsCount.rows[0].count,
+    });
   } catch (error) {
-    console.error('Error al obtener los clientes:', error);
-    res.status(500).json({ message: 'Error al obtener los clientes' });
-  }
-});
-
-// Crear un nuevo cliente
-router.post('/', authenticateToken, async (req, res) => {
-  const { name, email } = req.body;
-
-  if (!name || !email) {
-    return res.status(400).json({ message: 'Nombre y email son obligatorios' });
-  }
-
-  try {
-    await pool.query('INSERT INTO clients (name, email) VALUES ($1, $2)', [name, email]);
-    res.status(201).json({ message: 'Cliente creado exitosamente' });
-  } catch (error) {
-    console.error('Error al crear el cliente:', error);
-    res.status(500).json({ message: 'Error al crear el cliente' });
-  }
-});
-
-// Actualizar cliente
-router.put('/:id', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const { name, email } = req.body;
-
-  if (!name || !email) {
-    return res.status(400).json({ message: 'Nombre y email son obligatorios' });
-  }
-
-  try {
-    const result = await pool.query('UPDATE clients SET name = $1, email = $2 WHERE id = $3 RETURNING *', [name, email, id]);
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Cliente no encontrado' });
-    }
-    res.status(200).json({ message: 'Cliente actualizado exitosamente' });
-  } catch (error) {
-    console.error('Error al actualizar el cliente:', error);
-    res.status(500).json({ message: 'Error al actualizar el cliente' });
-  }
-});
-
-// Eliminar cliente
-router.delete('/:id', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const result = await pool.query('DELETE FROM clients WHERE id = $1 RETURNING *', [id]);
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Cliente no encontrado' });
-    }
-    res.status(200).json({ message: 'Cliente eliminado exitosamente' });
-  } catch (error) {
-    console.error('Error al eliminar el cliente:', error);
-    res.status(500).json({ message: 'Error al eliminar el cliente' });
+    console.error('Error fetching dashboard data:', error);
+    res.status(500).json({ message: 'Error fetching dashboard data' });
   }
 });
 

@@ -73,9 +73,35 @@ app.get('/protected', authenticateToken, (req, res) => {
   res.json({ message: 'Acceso permitido', user: req.user });
 });
 
+
+// Emit database update event
+const emitDbUpdate = async () => {
+  try {
+    const usersCount = await pool.query('SELECT COUNT(*) FROM users');
+    const companiesCount = await pool.query('SELECT COUNT(*) FROM companies');
+    const productsCount = await pool.query('SELECT COUNT(*) FROM products');
+    const ordersCount = await pool.query('SELECT COUNT(*) FROM orders');
+    const invoicesCount = await pool.query('SELECT COUNT(*) FROM invoices');
+    const clientsCount = await pool.query('SELECT COUNT(*) FROM clients');
+
+    io.emit('db_update', {
+      users: usersCount.rows[0].count,
+      companies: companiesCount.rows[0].count,
+      products: productsCount.rows[0].count,
+      orders: ordersCount.rows[0].count,
+      invoices: invoicesCount.rows[0].count,
+      clients: clientsCount.rows[0].count,
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+  }
+};
+//emitDbUpdate();
+
 // Crear el servidor HTTP
 const server = app.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);
+  emitDbUpdate();
 });
 
 // Configurar WebSockets con socket.io y habilitar CORS
@@ -104,13 +130,13 @@ io.on('connection', (socket) => {
 
   socket.on("get_cart_count", () => {
     const totalItems = 7; // Función que obtiene el total de ítems en BD
-    console.log("📡 Enviando cantidad de ítems:", totalItems);
+    console.log(" Enviando cantidad de ítems:", totalItems);
     socket.emit("cart_update", { type: "cart_update", totalItems });
   });
   
 
   socket.on('cart_update', (message) => {
-    console.log("📡 Enviando cantidad de ítems:", totalItems);
+    console.log(" Enviando cantidad de ítems:", totalItems);
     socket.emit("cart_update", { type: "cart_update", totalItems });
   });
 
@@ -122,3 +148,9 @@ setTimeout(() => {
   io.emit('message', 'backend_en_linea');
   console.log('backend_en_linea emitido');
 }, 10000);
+
+
+// Example: Emit updates periodically or after certain events
+setInterval(emitDbUpdate, 60000); // Emit every 60 seconds
+
+// Call emitDbUpdate after certain database operations, like adding a new order

@@ -11,11 +11,12 @@
   <div class="sidebar" id="sidebar">
     <button onclick="toggleSidebar()">☰</button>
     <button onclick="loadSection('dashboard')">Dashboard</button>
-    <button onclick="loadSection('clients')">Clientes</button>
-    <button onclick="loadSection('users')">Usuarios</button>
-    <button onclick="loadSection('products')">Productos</button>
-    <button onclick="loadSection('orders')">Órdenes</button>
-    <button onclick="loadSection('invoices')">Facturas</button>
+    <button onclick="loadSection('companies')">Companies</button>
+    <button onclick="loadSection('clients')">Clients</button>
+    <button onclick="loadSection('users')">Users</button>
+    <button onclick="loadSection('products')">Products</button>
+    <button onclick="loadSection('orders')">Orders</button>
+    <button onclick="loadSection('invoices')">Invoices</button>
   </div>
 
   <div class="main-content">
@@ -28,8 +29,77 @@
     </div>
     <div id="content" class="content-section">
       <h1>Bienvenido al Dashboard</h1>
+      <canvas id="recordChart" width="400" height="200"></canvas>
     </div>
   </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const socket = io();
+      const contentElement = document.getElementById('content');
+      const usernameElement = document.getElementById('username');
+      const ctx = document.getElementById('recordChart').getContext('2d');
+      const recordChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Users', 'Companies', 'Products', 'Orders', 'Invoices'],
+          datasets: [{
+            label: 'Number of Records',
+            data: [0, 0, 0, 0, 0], // Initial data
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.2)',
+              'rgba(54, 162, 235, 0.2)',
+              'rgba(255, 206, 86, 0.2)',
+              'rgba(75, 192, 192, 0.2)',
+              'rgba(153, 102, 255, 0.2)'
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      socket.on('update', (data) => {
+        // Handle real-time updates here
+        contentElement.innerHTML = `<h1>${data.message}</h1>`;
+      });
+
+      socket.on('user_update', (userData) => {
+        // Update user information
+        usernameElement.textContent = userData.username;
+      });
+
+      socket.on('db_update', (data) => {
+        // Update chart data with real-time database record counts
+        recordChart.data.datasets[0].data = [
+          data.users,
+          data.companies,
+          data.products,
+          data.orders,
+          data.invoices
+        ];
+        recordChart.update();
+      });
+
+      // Example of emitting an event
+      socket.emit('request_update', { section: 'dashboard' });
+      socket.emit('request_db_update');
+    });
+  </script>
 
   <script type="module" src="/dashboard-visual/sidebar.js"></script>
   <script src="dashboard.js"></script>
