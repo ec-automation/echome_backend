@@ -1,4 +1,7 @@
-const pool = require('../database/db');
+//para crear o actualizar la base de datos usar esta orden
+// node c:/Users/fsoar/Desktop/echome_backend/src/migrations/init_db.js
+
+import pool from '../database/db.js';
 
 const createTables = async () => {
   try {
@@ -29,6 +32,28 @@ const createTables = async () => {
         amount DECIMAL(10, 2) NOT NULL,
         created_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS companies (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        ruc VARCHAR(11) UNIQUE NOT NULL,
+        website VARCHAR(255)
+      );
+
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        price DECIMAL(10, 2) NOT NULL,
+        stock INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        company_id INTEGER REFERENCES companies(id)
+      );
+
+      ALTER TABLE products
+      ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id);
+
     `);
 
     console.log('Tablas creadas exitosamente');
