@@ -102,6 +102,18 @@ io.on('connection', (socket) => {
     io.emit('message', message);
   });
 
+  socket.on("get_cart_count", () => {
+    const totalItems = 7; // Función que obtiene el total de ítems en BD
+    console.log("📡 Enviando cantidad de ítems:", totalItems);
+    socket.emit("cart_update", { type: "cart_update", totalItems });
+  });
+  
+
+  socket.on('cart_update', (message) => {
+    console.log("📡 Enviando cantidad de ítems:", totalItems);
+    socket.emit("cart_update", { type: "cart_update", totalItems });
+  });
+
   // Ejemplo de enviar un mensaje al cliente
   socket.emit('message', 'Conexión WebSocket exitosa');
 });

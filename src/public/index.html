@@ -108,6 +108,13 @@
         messageContainer.prepend(messageElement);
       });
 
+      socket.on('cart_update', (message) => {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', 'incoming');
+        messageElement.textContent = `Incoming cart_update: ${message}`;
+        messageContainer.prepend(messageElement);
+      });
+
       function sendMessage() {
         const message = 'Backend Server Running v1.0.0'; // Example message
         socket.emit('message', message);
