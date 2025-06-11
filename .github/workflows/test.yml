@@ -1,4 +1,4 @@
-name: Ejecutar Pruebas y Cobertura
+name: Ejecutar Pruebas y Reporte
 
 on: [push, pull_request]
 
@@ -7,28 +7,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Clonar el código
-      uses: actions/checkout@v4  # 🔥 Actualizado a v4
+    - name: Clonar el repositorio
+      uses: actions/checkout@v4
 
     - name: Configurar Node.js
-      uses: actions/setup-node@v4  # 🔥 Actualizado a v4
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
 
     - name: Instalar dependencias
       run: npm install
 
-    - name: Ejecutar pruebas con cobertura
-      run: npm test -- --coverage --coverageReporters=html
+    - name: Ejecutar pruebas con cobertura y generar HTML
+      run: npm test
 
-    - name: Subir reporte de pruebas
-      uses: actions/upload-artifact@v4  # 🔥 Cambiado a v4
+    - name: Subir test-report.html
+      uses: actions/upload-artifact@v4
       with:
         name: test-report
         path: test-report.html
 
-    - name: Subir reporte de cobertura
-      uses: actions/upload-artifact@v4  # 🔥 Cambiado a v4
+    - name: Subir cobertura lcov
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: coverage/lcov-report/
