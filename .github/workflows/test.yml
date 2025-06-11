@@ -39,6 +39,7 @@ jobs:
     - name: Publicar en GitHub Pages
       uses: peaceiris/actions-gh-pages@v4
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        personal_token: ${{ secrets.GH_PAGES_TOKEN }}
         publish_dir: ./report
         publish_branch: gh-pages
+      
