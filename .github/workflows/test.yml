@@ -1,4 +1,4 @@
-name: Ejecutar Pruebas y Reporte
+name: Ejecutar Pruebas y Publicar Reporte
 
 on: [push, pull_request]
 
@@ -18,17 +18,27 @@ jobs:
     - name: Instalar dependencias
       run: npm install
 
-    - name: Ejecutar pruebas con cobertura y generar HTML
-      run: npm test
+    - name: Ejecutar pruebas y mover reporte
+      run: |
+        npm test
+        mkdir -p report
+        cp test-report.html report/index.html
 
-    - name: Subir test-report.html
+    - name: Subir test-report.html como artefacto
       uses: actions/upload-artifact@v4
       with:
         name: test-report
-        path: test-report.html
+        path: report/index.html
 
     - name: Subir cobertura lcov
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: coverage/lcov-report/
+
+    - name: Publicar en GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./report
+        publish_branch: gh-pages
