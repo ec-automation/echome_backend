@@ -31,3 +31,9 @@ jobs:
           args: "deploy --remote-only"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Show Fly.io status
+        run: fly status
+          env:
+            FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  
