@@ -3,7 +3,7 @@ name: Unitary Test and Report generation
 on: [push, pull_request]
 
 jobs:
-  test:
+  Testing_prior_deployment:
     runs-on: ubuntu-latest
 
     steps:
