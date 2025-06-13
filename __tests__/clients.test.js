@@ -57,7 +57,6 @@ test('updateClient debe actualizar el nombre y correo del cliente', async () => 
     }));
   });
   
-
 test('deleteClient debe eliminar un cliente', async () => {
   document.body.innerHTML = '<table><tbody id="clientList"><tr id="client-1">' +
     '<td>1</td>' +
