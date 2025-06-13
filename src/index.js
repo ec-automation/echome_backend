@@ -170,7 +170,7 @@ io.on('connection', (socket) => {
 
 setTimeout(() => {
   io.emit('message', 'backend_en_linea');
-  console.log('backend_en_linea emitido');
+  console.log('EC-HOME BACKEND SERVER RUNNING');
 }, 10000);
 
 
