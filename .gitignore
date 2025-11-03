@@ -6,11 +6,11 @@ yarn-error.log
 package-lock.json
 
 # 🔑 Entornos y variables sensibles
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+#.env
+#.env.local
+#.env.development.local
+#.env.test.local
+#.env.production.local
 
 # 🐳 Docker
 docker-compose.override.yml
