@@ -1,4 +1,4 @@
-name: Unitary Test and Report generation 
+name: ECHOME Unitary Test and Report generation 
 
 on: [push, pull_request]
 
