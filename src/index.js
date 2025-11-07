@@ -164,6 +164,16 @@ io.on('connection', (socket) => {
       }
     });
 
+    socket.on('login', (user) => {
+    console.log('Un cliente ingreso,',user);
+  });
+   socket.on('load-graph', (user) => {
+    console.log('Un cliente quiere cargar su grafo,',user);
+  });
+
+  
+  
+
   // Ejemplo de enviar un mensaje al cliente
   socket.emit('message', 'Conexión WebSocket exitosa');
 });
